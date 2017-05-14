@@ -13,7 +13,7 @@ while [ $i -ne 0 ]
 #for i in `seq 1 20`;
 do	 
 	oldtoto=$toto
-	toto=$(find *[^1-9]$i[^0-9]*[.pdf])
+	toto=$(find *[^1-9]$i[^0-9]*[.pdf] | tac)
 	if [$i -eq 1]
 		then
 		totaltot=$toto
