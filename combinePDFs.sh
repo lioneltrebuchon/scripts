@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -ne 1 ]; then
-    echo $0: usage: myscript path
+    echo $0: usage: ./combinePDFs.sh "path/with spaces/path"
     exit 1
 fi
 path=$1
@@ -8,11 +8,12 @@ cd $path
 
 i=1
 toto="toti"
-path=$path
+path="$path"
 while [ $i -ne 0 ]
 #for i in `seq 1 20`;
 do	 
-	oldtoto=$toto
+    echo "$i"
+    oldtoto=$toto
 	toto=$(find *[^1-9]$i[^0-9]*[.pdf] | tac)
 	if [$i -eq 1]
 		then
