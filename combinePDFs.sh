@@ -1,12 +1,13 @@
 #!/bin/bash
 if [ $# -ne 1 ]; then
-    echo $0: usage: ./combinePDFs.sh "path/with spaces/path"
+    echo $0: usage: /combinePDFs.sh "path/with spaces/path"
     exit 1
 fi
 path=$1
 cd $path
 
 i=1
+space=" "
 toto="toti"
 path="$path"
 while [ $i -ne 0 ]
@@ -14,12 +15,12 @@ while [ $i -ne 0 ]
 do	 
     echo "$i"
     oldtoto=$toto
-	toto=$(find *[^1-9]$i[^0-9]*[.pdf] | tac)
+	toto=$(find *[^1-9]$i[^0-9]*'.pdf' | tac)
 	if [$i -eq 1]
 		then
 		totaltot=$toto
 	else
-		totaltot=$totaltot" "$toto
+		totaltot=$totaltot$space$toto
 	fi
 
 	if [ "$toto" == "$oldtoto" ]

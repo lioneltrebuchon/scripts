@@ -8,15 +8,20 @@ fi
 path=$1
 cd $path
 
+echo $PWD
+
 i=1
 toto="toti"
-path=$path
+path="$path"
 while [ $i -ne 0 ]
 #for i in `seq 1 20`;
 do	 
+	# echo "$i"
 	oldtoto=$toto
-	toto=$(find *[^0-9]$i[^0-9]*[.png])
-	if [[ "$i" -eq 1 ]]
+	#toto=$(find *[^0-9]$i[^0-9]*[.png])
+	toto=$(find -maxdepth 1 -name *[^0-9]$i'.png')
+	#toto=$(find . -maxdepth 1 -type f -name '*[^0-9]$i[.png]')
+	if [ $i -eq 1 ]
 		then
 		totaltot=$toto
 	else
@@ -30,6 +35,5 @@ do
 	else
 		i=$(($i + 1))
 	fi
-done
-# echo $totaltot
-avconv -i $totaltot -qscale 15 -b:v 1M cool_diffusion.avi
+# done
+avconv -i $totaltot -qscale 15 -b:v 1M diff_06.14_porous_chemotaxis.avi
