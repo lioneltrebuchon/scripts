@@ -13,7 +13,7 @@ echo $PWD
 printf "\n"
 
 # Initializations
-mkdir tmp
+mkdir -p tmp
 i=1
 space=" "
 toto="toti"
@@ -41,7 +41,10 @@ done
 unset i
 
 # Create movie
-avconv -loglevel panic -start_number 1 -i tmp/img%d.png -r 12 -qscale 10 -b:v 1M "$name".avi
+# NO OUTPUT
+avconv -loglevel panic -start_number 1 -i tmp/img%d.png -r 12 -qscale 10 -b:v 1M "${name::-10}".avi
+# DEBUG
+# avconv -start_number 1 -i tmp/img%d.png -r 12 -qscale 10 -b:v 1M "$name".avi
 
 # Clean up
 rm -rf tmp
