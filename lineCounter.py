@@ -8,6 +8,21 @@ import glob
 import xlsxwriter
 import fileinput
 
+
+def insert_line(file_name, line_num, text):
+    lines = open(file_name,'r').readlines()
+    lines[line_num] = lines[line_num]+text
+    out = open(file_name,'w')
+    out.writelines(lines)
+    out.close()
+
+def replace_line(file_name, line_num, text):
+    lines = open(file_name,'r').readlines()
+    lines[line_num] = text
+    out = open(file_name,'w')
+    out.writelines(lines)
+    out.close()
+
 def list_files_with_lines(startpath,*writeFile):
     if not writeFile:
         # Printing file structure to command line
@@ -31,7 +46,6 @@ def list_files_with_lines(startpath,*writeFile):
                         print('{}{}'.format(subindent,file))
     else:
         extCounter = 0
-        print writeFile[1]
         lengthCut = len(startpath)
         fileDict = {}
         # Building dictionary by parsing all files in current directory, recursively!
@@ -42,30 +56,33 @@ def list_files_with_lines(startpath,*writeFile):
                     fileFullName = os.path.join(root,os.path.relpath(file))
                     f = open(fileFullName)
                     keyName = fileFullName[lengthCut:-2]
-                    fileDict[keyName] = sum(1 for line in f if line.strip() and not line.startswith('%'))
+                    fileDict[keyName] = sum(1 for line in f if line.strip() and not line.lstrip().startswith('%'))
                     f.close()
-
+                    # The following should be done much nicer by reading
+                    # in lines one by one using import fileinput.
+                    # The difficulty was found in working the file.close().
                     if writeFile[1]: # we'll be writing to line Nr. writeFile[1] if some condition is met
-                        comment = "%Code lines - "+str(fileDict[keyName])
-                        print comment
-                        print keyName
-                        if extCounter == 1:
-                            break
-                        extCounter += 1
-                        commentPosition = 1
+                        comment = "    % Code lines - "+str(fileDict[keyName]) + "\n" # space in front to not break sphinx class docu
+                        commentPosition = 0
                         counter = 0
-                        for line in fileinput.FileInput(fileFullName,inplace=1):
-                            print "%d: %s" % (fileinput.filelineno(), line)
-                            if line[-3:] == "...":
+                        f = open(fileFullName)
+                        for line in f:
+                            if line[-4:-1] == "...":
                                 commentPosition += 1
                                 continue
-                            if counter == commentPosition and line[:12] != "%Code lines -":
-                                line=line.replace(line,line+comment)
+                            if counter == commentPosition and line.lstrip()[:13] != "% Code lines -": # Remove previous count.
+                                f.close()
+                                insert_line(fileFullName,commentPosition,comment)
                                 break
                             elif line[:12] == "%Code lines -":
-                                line=line.replace(line,comment)
+                                f.close()
+                                replace_line(fileFullName,commentPosition,comment)
                                 break
-                            counter += 1
+                            else:
+                                counter += 1
+
+                    if f is not None:
+                        f.close()
 
         with xlsxwriter.Workbook(writeFile[0]) as workbook:
             worksheet = workbook.add_worksheet()
@@ -85,23 +102,39 @@ def list_files_with_lines(startpath,*writeFile):
                 worksheet.write(row,col+1,fileDict[key])
 
 
-writeFile = os.path.join(os.getcwd(),'./listDirectories.xlsx')
-startpath = os.path.join(os.getcwd(),'../temp')
-list_files_with_lines(startpath,writeFile,1)
-
-
 debug = 0
+
+
+if not debug:
+    writeFile = os.path.join(os.getcwd(),'./listDirectories.xlsx')
+    startpath = os.path.join(os.getcwd(),'../tempClassifierTools')
+    list_files_with_lines(startpath,writeFile,1)
+
+
 if debug:
-    #parses through files and saves to a dict
-    names = {}
-    for fn in glob.glob('*.sh'):
-        with open(fn) as f:
-            names[fn] = sum(1 for line in f if line.strip() and not line.startswith('%')) 
+    # test line endings python
+    f = open("C:\\GitRepositories\\temp\\2_FeatureCalculation\\FormFeatureCellSounds.m")
+    counter = 0
+    for line in f:
+        if counter == 1:
+            f.close()
+            break
+        else:
+            print line[-3:]
+            print line[-4:-1]
+            counter += 1
 
-    print names
 
-    #save the dictionary with key/val pairs to a csv
-    with open('matlabLineCounter.csv', 'w') as writeFile: 
-        writer = csv.writer(writeFile)
-        for key,value in names.items():
-            writer.writerow([key[:-2],value])
+    # #parses through files and saves to a dict
+    # names = {}
+    # for fn in glob.glob('*.sh'):
+    #     with open(fn) as f:
+    #         names[fn] = sum(1 for line in f if line.strip() and not line.startswith('%')) 
+
+    # print names
+
+    # #save the dictionary with key/val pairs to a csv
+    # with open('matlabLineCounter.csv', 'w') as writeFile: 
+    #     writer = csv.writer(writeFile)
+    #     for key,value in names.items():
+    #         writer.writerow([key[:-2],value])
