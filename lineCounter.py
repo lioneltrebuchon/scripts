@@ -62,21 +62,24 @@ def list_files_with_lines(startpath,*writeFile):
                     # in lines one by one using import fileinput.
                     # The difficulty was found in working the file.close().
                     if writeFile[1]: # we'll be writing to line Nr. writeFile[1] if some condition is met
-                        comment = "    % Code lines - "+str(fileDict[keyName]) + "\n" # space in front to not break sphinx class docu
-                        commentPosition = 0
+                        comment = "% Code lines - "+str(fileDict[keyName])+"\n" 
+                        commentPosition = 1
                         counter = 0
                         f = open(fileFullName)
                         for line in f:
-                            if line[-4:-1] == "...":
+                            if line[:8] == "classdef":
+                                comment = "    "+comment # Sphinx cannot parse signatures of classdefs without indentation
+                            if line[-4:-1] == "..." and line.lstrip()[0]!="%":
                                 commentPosition += 1
                                 continue
-                            if counter == commentPosition and line.lstrip()[:13] != "% Code lines -": # Remove previous count.
+                            if counter == commentPosition and line.lstrip()[:12] == "% Code lines": # Remove previous count.
                                 f.close()
-                                insert_line(fileFullName,commentPosition,comment)
+                                replace_line(fileFullName,commentPosition-1,comment)
+                                print("FINALYYYYYYYYY")
                                 break
-                            elif line[:12] == "%Code lines -":
+                            elif counter == commentPosition and line.lstrip()[:12] != "% Code lines":
                                 f.close()
-                                replace_line(fileFullName,commentPosition,comment)
+                                insert_line(fileFullName,commentPosition-1,comment)
                                 break
                             else:
                                 counter += 1
@@ -101,28 +104,60 @@ def list_files_with_lines(startpath,*writeFile):
                 # else:
                 worksheet.write(row,col+1,fileDict[key])
 
-
 debug = 0
 
 
 if not debug:
     writeFile = os.path.join(os.getcwd(),'./listDirectories.xlsx')
-    startpath = os.path.join(os.getcwd(),'../tempClassifierTools')
+    startpath = os.path.join(os.getcwd(),'../tempClassifierTools2')
     list_files_with_lines(startpath,writeFile,1)
 
 
 if debug:
-    # test line endings python
-    f = open("C:\\GitRepositories\\temp\\2_FeatureCalculation\\FormFeatureCellSounds.m")
-    counter = 0
-    for line in f:
-        if counter == 1:
-            f.close()
-            break
-        else:
-            print line[-3:]
-            print line[-4:-1]
-            counter += 1
+    file = "C:\\GitRepositories\\tempClassifierTools2\\2_FeatureCalculation\\FormFeatureCellSounds.m"
+    # f = open(file)
+    # counter = 0
+    # for line in f:
+    #     print counter
+    #     if line.lstrip()[1:12] == "% Code lines":
+    #         print("Option1")
+    #     if line.lstrip()[:12] == "% Code lines":
+    #         print("Option2")
+    #     if line.lstrip()[0:12] == "% Code lines":
+    #         print("Option3")
+    #     if line.lstrip()[0:11] == "% Code lines":
+    #         print("Option4")
+    #     if line.lstrip()[:11] == "% Code lines":
+    #         print("Option5")
+    #     if line.lstrip()[1:13] == "% Code lines":
+    #         print("Option6")
+    #     if line.lstrip()[0:13] == "% Code lines":
+    #         print("Option7")
+    #     if line.lstrip()[:13] == "% Code lines":
+    #         print("Option8")
+    #     if line.lstrip()[1:11] == "% Code lines":
+    #         print("Option9")
+    #     counter += 1
+
+    replace_line(file,1,'bla2\n')
+
+    # # test line endings and starts python
+    # counter = 0
+    # for line in f:
+    #     if counter == 5:
+    #         f.close()
+    #         break
+    #     else:
+    #         print line[:7]
+    #         if line[:5] == "% Code":
+    #             print("Starts at 0!")
+    #         if line[:6] == "% Code":
+    #             print("Starts at 1!")
+    #         if line.lstrip()[:5] == "% Code":
+    #             print("Lstrp at 0!")
+    #         if line.lstrip()[:6] == "% Code":
+    #             print("Lstrp at 1!")
+    #         counter += 1
 
 
     # #parses through files and saves to a dict
