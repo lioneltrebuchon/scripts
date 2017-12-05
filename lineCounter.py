@@ -11,7 +11,7 @@ import fileinput
 
 def insert_line(file_name, line_num, text):
     lines = open(file_name,'r').readlines()
-    lines[line_num] = lines[line_num]+text
+    lines[line_num] = text+lines[line_num]
     out = open(file_name,'w')
     out.writelines(lines)
     out.close()
@@ -71,15 +71,13 @@ def list_files_with_lines(startpath,*writeFile):
                                 comment = "    "+comment # Sphinx cannot parse signatures of classdefs without indentation
                             if line[-4:-1] == "..." and line.lstrip()[0]!="%":
                                 commentPosition += 1
-                                continue
                             if counter == commentPosition and line.lstrip()[:12] == "% Code lines": # Remove previous count.
                                 f.close()
-                                replace_line(fileFullName,commentPosition-1,comment)
-                                print("FINALYYYYYYYYY")
+                                replace_line(fileFullName,commentPosition,comment)
                                 break
                             elif counter == commentPosition and line.lstrip()[:12] != "% Code lines":
                                 f.close()
-                                insert_line(fileFullName,commentPosition-1,comment)
+                                insert_line(fileFullName,commentPosition,comment)
                                 break
                             else:
                                 counter += 1
@@ -139,7 +137,7 @@ if debug:
     #         print("Option9")
     #     counter += 1
 
-    replace_line(file,1,'bla2\n')
+    insert_line(file,3,'bla5\n')
 
     # # test line endings and starts python
     # counter = 0
