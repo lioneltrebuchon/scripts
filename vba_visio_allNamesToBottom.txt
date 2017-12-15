@@ -5,6 +5,7 @@ Sub allNamesToBottom()
   '// Adjusts the text block of selected shapes so that
   '// the text is at the bottom of the shape. This matches
   '// the default text position for inserted images.
+  '// http://www.visguy.com/2007/11/07/text-to-the-bottom-of-the-shape/
  
   Dim sel As Visio.Selection
   Dim shp As Visio.Shape
