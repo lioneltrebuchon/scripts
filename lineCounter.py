@@ -62,7 +62,7 @@ def list_files_with_lines(startpath,*writeFile):
                     # in lines one by one using import fileinput.
                     # The difficulty was found in working the file.close().
                     if writeFile[1]: # we'll be writing to line Nr. writeFile[1] if some condition is met
-                        comment = "% Code lines - "+str(fileDict[keyName])+"\n" 
+                        comment = "% Code lines - "+str(fileDict[keyName])+".\n" 
                         commentPosition = 1
                         counter = 0
                         f = open(fileFullName)
@@ -107,7 +107,7 @@ debug = 0
 
 if not debug:
     writeFile = os.path.join(os.getcwd(),'./listDirectories.xlsx')
-    startpath = os.path.join(os.getcwd(),'../tempClassifierTools2')
+    startpath = os.path.join(os.getcwd(),'../ClassifierTools')
     list_files_with_lines(startpath,writeFile,1)
 
 
