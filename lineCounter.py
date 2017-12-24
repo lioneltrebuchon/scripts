@@ -24,6 +24,8 @@ def replace_line(file_name, line_num, text):
     out.close()
 
 def list_files_with_lines(startpath,*writeFile):
+    # writeFile = 1 : write/replace the comment given condition.
+    # writeFile = 2 : delete line where the comment has been made.
     if not writeFile:
         # Printing file structure to command line
         for root, dirs, files in os.walk(startpath):
@@ -61,8 +63,8 @@ def list_files_with_lines(startpath,*writeFile):
                     # The following should be done much nicer by reading
                     # in lines one by one using import fileinput.
                     # The difficulty was found in working the file.close().
-                    if writeFile[1]: # we'll be writing to line Nr. writeFile[1] if some condition is met
-                        comment = "% Code lines - "+str(fileDict[keyName])+".\n" 
+                    if writeFile[1]==1: # we'll be writing to line Nr. writeFile[1] if some condition is met.
+                        comment = "% Code lines - "+str(fileDict[keyName])+"\n"
                         commentPosition = 1
                         counter = 0
                         f = open(fileFullName)
@@ -78,6 +80,23 @@ def list_files_with_lines(startpath,*writeFile):
                             elif counter == commentPosition and line.lstrip()[:12] != "% Code lines":
                                 f.close()
                                 insert_line(fileFullName,commentPosition,comment)
+                                break
+                            else:
+                                counter += 1
+                    elif writeFile[1] == 2:
+                        comment = ""
+                        commentPosition = 1
+                        counter = 0
+                        f = open(fileFullName)
+                        for line in f:
+                            if line[-4:-1] == "..." and line.lstrip()[0]!="%":
+                                commentPosition += 1
+                            if counter == commentPosition and line.lstrip()[:12] == "% Code lines": # Remove previous count.
+                                f.close()
+                                replace_line(fileFullName,commentPosition,comment)
+                                break
+                            elif counter == commentPosition and line.lstrip()[:12] != "% Code lines":
+                                f.close()
                                 break
                             else:
                                 counter += 1
@@ -107,8 +126,8 @@ debug = 0
 
 if not debug:
     writeFile = os.path.join(os.getcwd(),'./listDirectories.xlsx')
-    startpath = os.path.join(os.getcwd(),'../ClassifierTools')
-    list_files_with_lines(startpath,writeFile,1)
+    startpath = os.path.join(os.getcwd(),'../../../ClassifierTools')
+    list_files_with_lines(startpath,writeFile,2)
 
 
 if debug:
@@ -162,12 +181,12 @@ if debug:
     # names = {}
     # for fn in glob.glob('*.sh'):
     #     with open(fn) as f:
-    #         names[fn] = sum(1 for line in f if line.strip() and not line.startswith('%')) 
+    #         names[fn] = sum(1 for line in f if line.strip() and not line.startswith('%'))
 
     # print names
 
     # #save the dictionary with key/val pairs to a csv
-    # with open('matlabLineCounter.csv', 'w') as writeFile: 
+    # with open('matlabLineCounter.csv', 'w') as writeFile:
     #     writer = csv.writer(writeFile)
     #     for key,value in names.items():
     #         writer.writerow([key[:-2],value])
