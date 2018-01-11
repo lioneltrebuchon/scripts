@@ -83,7 +83,7 @@ def list_files_with_lines(startpath,*writeFile):
                                 break
                             else:
                                 counter += 1
-                    elif writeFile[1] == 2:
+                    elif writeFile[1] == 2: # same but removing previous comments. Unelegant solution.
                         comment = ""
                         commentPosition = 1
                         counter = 0
