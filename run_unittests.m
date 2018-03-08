@@ -1,16 +1,9 @@
 %% Example Script to use to Unittest framework
+% Code lines - 44.
 % WARNING: depending on the test selections the order can be wrong!!!
 clear all
 close all
 clc
-
-% make environment CBWR-compatible in order to avoid e-24 precision errors
-mkl_cmp = true;
-if mkl_cmp
-    setenv('MATLAB_DISABLE_CBWR','1');
-    setenv('MKL_CBWR','COMPATIBLE');
-    NrTh = maxNumCompThreads(4);
-end
 
 % Import libraries
 import matlab.unittest.TestSuite;
@@ -24,12 +17,28 @@ import matlab.unittest.constraints.ContainsSubstring
 
 %% Parametrization
 % Task
-task_ = 'HABS_6classes_regression';  % HABS_6classes_tiny HABS_6classes_regression HABS_6classes_Venture HABS_6classes_Mickey
+task_ = 'HABS_6classes_tiny';  % HABS_6classes_tiny HABS_6classes_regression HABS_6classes_Venture HABS_6classes_Mickey
 % jUnit report
 filename = fullfile(ClasRoot,'log',[mfilename '.junit.xml']);
 % Verbosity
 runVerbosity = 2;
-timeTicCounter = zeros(1,3);
+% MKL compatible (correct processor dependencies)
+mkl_cmp = true;
+if mkl_cmp
+    setenv('MATLAB_DISABLE_CBWR','1');
+    setenv('MKL_CBWR','COMPATIBLE');
+    NrTh = maxNumCompThreads(4);
+end
+% enable phases
+% 
+test_config = 1;
+test_reference = 0;
+test_feature = 0;
+test_split = 0;
+test_train = 0;
+test_export = 0;
+% Enable Skip
+skipTasks = false;
 
 
 %% Examples
@@ -37,10 +46,10 @@ if exist(filename,'file')
     delete(filename)
 end
 suites_sel = [];
-suites_all = [];
+suites_all = []; % so as to
 
 % Test all configuration files (could be limited to task)
-if 1
+if test_config
     suite_all = TestSuite.fromPackage('unittest.Configuration');
     % Reduce to selection
     suite_sel = suite_all.selectIf(HasName(ContainsSubstring('verifyFileStructure','IgnoringCase',true)));
@@ -49,8 +58,20 @@ if 1
     suites_sel = [suites_sel, suite_sel];
 end
 
-% Copy ReferenceParcours reference data for audio and features (alias skip)
-if 1
+
+%% ReferencePackages
+% Run ReferencePackages
+if test_reference
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('run','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('ReferencePackages','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+elseif skipTasks
     suite_all = TestSuite.fromPackage('unittest.TrainingTools');
     % Reduce to task only
     suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
@@ -62,8 +83,33 @@ if 1
     suites_sel = [suites_sel, suite_sel];
 end
 
-% Copy Training reference data for audio and features (alias skip)
-if 1
+% verify ReferencePackages
+if test_reference
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('verify','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('ReferencePackages','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+end
+
+
+%% FeatureCalculation
+% Run FeatureCalculation
+if test_feature
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('run','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('FeatureCalculation','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+elseif skipTasks
     suite_all = TestSuite.fromPackage('unittest.TrainingTools');
     % Reduce to task only
     suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
@@ -75,8 +121,23 @@ if 1
     suites_sel = [suites_sel, suite_sel];
 end
 
+% Verify FeatureCalculation
+if test_feature
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('verify','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('FeatureCalculation','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+end
+
+
+%% SplitTrainTest
 % Run SplitTrainTest
-if 0
+if test_split
     suite_all = TestSuite.fromPackage('unittest.TrainingTools');
     % Reduce to task only
     suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
@@ -86,10 +147,20 @@ if 0
     % add to the main lists
     suites_all = [suites_all, suite_all];
     suites_sel = [suites_sel, suite_sel];
+elseif skipTasks
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('skip','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('SplitTrainTest','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
 end
 
 % Verify SplitTrainTest
-if 0
+if test_split
     suite_all = TestSuite.fromPackage('unittest.TrainingTools');
     % Reduce to task only
     suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
@@ -101,19 +172,82 @@ if 0
     suites_sel = [suites_sel, suite_sel];
 end
 
-% Run and Verify SplitTrainTest
-if 1
+
+%% TrainTestMaster
+% Run TrainTestMaster
+if test_train
     suite_all = TestSuite.fromPackage('unittest.TrainingTools');
     % Reduce to task only
     suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
     % Reduce to selection
-    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('SplitTrainTest','IgnoringCase',true)));
-    suite_sel_run = suite_sel.selectIf(HasName(ContainsSubstring('run','IgnoringCase',true)));
-    suite_sel_verify = suite_sel.selectIf(HasName(ContainsSubstring('verify','IgnoringCase',true)));
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('run','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('TrainTestMaster','IgnoringCase',true)));
     % add to the main lists
     suites_all = [suites_all, suite_all];
-    suites_sel = [suites_sel, suite_sel_run, suite_sel_verify];
+    suites_sel = [suites_sel, suite_sel];
+elseif skipTasks
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('skip','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('TrainTestMaster','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
 end
+
+% Verify TrainTestMaster
+if test_train
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('verify','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('TrainTestMaster','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+end
+
+
+%% ExportTraining
+% Run ExportTraining
+if test_export
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('run','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('ExportTraining','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+elseif skipTasks
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('skip','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('ExportTraining','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+end
+
+% Verify ExportTraining
+if test_export
+    suite_all = TestSuite.fromPackage('unittest.TrainingTools');
+    % Reduce to task only
+    suite_all = suite_all.selectIf(HasParameter('Property','tasks','Value',task_));
+    % Reduce to selection
+    suite_sel = suite_all.selectIf(HasName(ContainsSubstring('verify','IgnoringCase',true)));
+    suite_sel = suite_sel.selectIf(HasName(ContainsSubstring('ExportTraining','IgnoringCase',true)));
+    % add to the main lists
+    suites_all = [suites_all, suite_all];
+    suites_sel = [suites_sel, suite_sel];
+end
+
 
 %% Run Suites
 if ~isempty(suites_sel)
