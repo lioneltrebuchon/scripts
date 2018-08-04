@@ -1,0 +1,12 @@
+Ctrl + / : comment.
+Ctrl + N : find class, file or symbol.
+Alt + Shift + E : run selection.
+Ctrl + B : open other occurence / variable definition.
+Ctrl + Space : basic code completion.
+Ctrl + Alt + T : surround with (if, try except, while, try finally).
+Alt + 9 : show version control window (shows differences, enables to commit etc...).
+Alt + Home : navigation through the files.
+Ctrl + Q : view items documentation.
+Ctrl + Up : in the interactive consoles, scroll through history of commands.
+Ctrl + R : replace.
+Ctrl+Alt+Shift+T, you will see the list of refactorings applicable to the current context.
