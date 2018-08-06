@@ -10,3 +10,4 @@ Ctrl + Q : view items documentation.
 Ctrl + Up : in the interactive consoles, scroll through history of commands.
 Ctrl + R : replace.
 Ctrl+Alt+Shift+T, you will see the list of refactorings applicable to the current context.
+Shift + F6 : refactor name of a variable in usage scope. 
