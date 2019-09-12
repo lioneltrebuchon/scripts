@@ -1,3 +1,28 @@
+##########################################################################################
+#
+# Author: Mohamed Ibrahim (mohamed_ibrahim@mckinsey.com)
+# Last modified: 27.08.2019
+#
+#
+# Purpose:
+# Support functions of the P4 scripts
+# 
+#
+# Input:
+# -
+#
+# Output:
+# - 
+#
+# Notes:
+# [NA]
+#
+# Issues:
+# [No known issues]
+#
+#
+###########################################################################################
+
 #-- Score the test sample using input model
 score_on_test<-function(mdl,dm_test)
 {
@@ -197,6 +222,7 @@ prepare_dm <- function(eop,dt_custs_inscope, dt_res_cast_agg=NULL, target_uplift
     }
     
     #-- Define the target column
+    targ_cols = names(dm_mdl)[grepl("target",names(dm_mdl))] # Later we'll remove other targets in case they're there.
     setnames(dm_mdl,target_uplift,"target")
     
     logit("#-- CLEANING --#")
@@ -250,7 +276,7 @@ prepare_dm <- function(eop,dt_custs_inscope, dt_res_cast_agg=NULL, target_uplift
     #-- Select only numeric columns
     num_cols = col_types[type == "integer" |type == "numeric" |type == "logical",col_name]
     #-- Exclude non predictors
-    num_cols = setdiff(num_cols,c(key_column)) # ,"target")
+    num_cols = setdiff(num_cols,c(key_column, targ_cols))
     dm_mdl = dm_mdl[,..num_cols]
     
     #-- Convert all to numeric
@@ -306,6 +332,43 @@ get_trained_model<-function(dm_trn, clf = "classif.xgboost", balance_rate=1)
   mdl = mlr::train(lrn, task)
   
   return(mdl)
+}
+
+#-- Do Hyperparameter tuning based on input search space
+get_tuned_trained_model<-function(dm_trn, clf = "classif.xgboost", params)
+{
+  require(mlr)
+  logit("#-- MODELLING --#")
+  #-- Set balance rate
+  balance_rate = params$balance_rate
+  
+  #-- Define the task
+  task = makeClassifTask( data = as.data.frame(dm_trn), target ="target")
+  
+  #-- Define the learner
+  lrn = suppressWarnings(makeLearner(clf, predict.type = "prob", eta = params$eta, max_depth = params$max_depth, nrounds=params$nrounds, colsample_bytree=params$colsample_bytree))
+  
+  #-- Set hyperparameters
+  #lrn = setHyperPars(lrn, eta = params$eta, max_depth = params$max_depth, nrounds=params$nrounds, colsample_bytree=params$colsample_bytree)  
+  
+  #-- Under/oversampling
+  if(balance_rate!=1)
+  {
+    if(balance_rate<0) # Undersampling
+    {
+      lrn = makeUndersampleWrapper(lrn, usw.rate = 1/abs(balance_rate))
+    }else{# Oversampling
+      if(balance_rate>1)
+      {
+        lrn = makeOversampleWrapper(lrn, osw.rate = balance_rate)
+      }
+    }
+  }
+  
+  #-- Train the model
+  mdl = mlr::train(lrn, task)
+  
+  return(mdl) 
 }
 
 
