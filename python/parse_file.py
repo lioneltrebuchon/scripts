@@ -1,3 +1,11 @@
+# set up regular expressions
+# use https://regexper.com to visualise these if required
+rx_dict = {
+    'school': re.compile(r'School = (?P<school>.*)\n'),
+    'grade': re.compile(r'Grade = (?P<grade>\d+)\n'),
+    'name_score': re.compile(r'(?P<name_score>Name|Score)'),
+}
+
 def _parse_line(line):
     """
     Do a regex search against all defined regexes and
